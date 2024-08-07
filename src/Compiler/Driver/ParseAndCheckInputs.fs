@@ -216,6 +216,55 @@ let PostParseModuleSpec (_i, defaultNamespace, isLastCompiland, fileName, intf) 
 
         SynModuleOrNamespaceSig(lid, isRecursive, kind, decls, xmlDoc, attributes, None, range, trivia)
 
+let GetScopedPragmas (langVersion: LanguageVersion) hashDirectives =
+    let supportsNonStringArguments =
+        langVersion.SupportsFeature(LanguageFeature.ParsedHashDirectiveArgumentNonQuotes)
+    
+    let getWarnDirectiveInfos hd = [
+        match hd with
+        | ParsedHashDirective(("nowarn" | "warnon") as hdIdent, args, m) ->
+            for arg in args do
+                let warningNumber =
+                    match supportsNonStringArguments, arg with
+                    | _, ParsedHashDirectiveArgument.SourceIdentifier _ -> None
+                    | true, ParsedHashDirectiveArgument.LongIdent _ -> None
+                    | true, ParsedHashDirectiveArgument.Int32(n, _) -> GetWarningNumber(m, string n, true)
+                    | true, ParsedHashDirectiveArgument.Ident(s, _) -> GetWarningNumber(m, s.idText, true)
+                    | _, ParsedHashDirectiveArgument.String(s, _, _) -> GetWarningNumber(m, s, true)
+                    | _ -> None  // emit warning?
+
+                match warningNumber with
+                | None -> ()
+                | Some n -> (hdIdent, n), m
+        | _ -> ()
+    ]
+    
+    let processWarnDirectiveInfo (openPragmas, pragmas) ((hdIdent, n), m: range) =
+        match hdIdent with
+        | "nowarn" ->
+            Map.add n m openPragmas, pragmas
+        | "warnon" ->
+            match Map.tryFind n openPragmas with
+            | Some mm ->   // do we have to add here `when m.FileIndex = mm.FileIndex`? (see comment above DiagnosticsLoggerFilteringByScopedPragmas)
+                let scope = Range.mkFileIndexRange m.FileIndex (mkPos mm.StartLine 0) (mkPos m.StartLine 0)
+                let pragma = ScopedPragma.WarningOff(scope, n)
+                Map.remove n openPragmas, pragma::pragmas
+            | None -> openPragmas, pragmas  // emit warning?
+        | _ -> failwith "unexpected hdIdent in processWarnDirectiveInfo"
+    
+    let addOpenPragmas (openPragmas, pragmas) =
+        let addPragma pragmas n (m: range) =
+            let fileEndLine = 1000000  //TODO!! What is the best way to define a range ending at eof?
+            let scope = Range.mkFileIndexRange m.FileIndex (mkPos m.StartLine 0) (mkPos fileEndLine 0)
+            ScopedPragma.WarningOff(scope, n) :: pragmas
+        openPragmas |> Map.fold addPragma pragmas
+    
+    hashDirectives
+    |> List.collect getWarnDirectiveInfos
+    |> List.sortBy (snd >> _.StartLine)
+    |> List.fold processWarnDirectiveInfo (Map.empty, [])
+    |> addOpenPragmas
+
 let GetScopedPragmasForHashDirective hd (langVersion: LanguageVersion) =
     let supportsNonStringArguments =
         langVersion.SupportsFeature(LanguageFeature.ParsedHashDirectiveArgumentNonQuotes)
@@ -253,7 +302,7 @@ let PostParseModuleImpls
         defaultNamespace,
         fileName,
         isLastCompiland,
-        ParsedImplFile(hashDirectives, impls),
+        ParsedImplFile(toplevelHashDirectives, impls),
         lexbuf: UnicodeLexing.Lexbuf,
         tripleSlashComments: range list,
         identifiers: Set<string>
@@ -277,15 +326,17 @@ let PostParseModuleImpls
     let isScript = IsScript fileName
 
     let scopedPragmas =
-        [
-            for SynModuleOrNamespace(decls = decls) in impls do
-                for d in decls do
-                    match d with
-                    | SynModuleDecl.HashDirective(hd, _) -> yield! GetScopedPragmasForHashDirective hd lexbuf.LanguageVersion
-                    | _ -> ()
-            for hd in hashDirectives do
-                yield! GetScopedPragmasForHashDirective hd lexbuf.LanguageVersion
-        ]
+        let hashDirectives =
+            [
+                for SynModuleOrNamespace(decls = decls) in impls do
+                    for d in decls do
+                        match d with
+                        | SynModuleDecl.HashDirective(hd, _) -> yield hd
+                        | _ -> ()
+                for hd in toplevelHashDirectives do
+                    yield hd
+            ]
+        hashDirectives |> GetScopedPragmas lexbuf.LanguageVersion
 
     let conditionalDirectives = LexbufIfdefStore.GetTrivia(lexbuf)
     let codeComments = collectCodeComments lexbuf tripleSlashComments
@@ -297,7 +348,7 @@ let PostParseModuleImpls
         }
 
     ParsedInput.ImplFile(
-        ParsedImplFileInput(fileName, isScript, qualName, scopedPragmas, hashDirectives, impls, isLastCompiland, trivia, identifiers)
+        ParsedImplFileInput(fileName, isScript, qualName, scopedPragmas, toplevelHashDirectives, impls, isLastCompiland, trivia, identifiers)
     )
 
 let PostParseModuleSpecs

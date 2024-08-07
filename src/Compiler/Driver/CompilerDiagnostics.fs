@@ -2249,12 +2249,10 @@ type DiagnosticsLoggerFilteringByScopedPragmas
                 match diagnostic.Range with
                 | Some m ->
                     scopedPragmas
-                    |> List.exists (fun pragma ->
-                        let (ScopedPragma.WarningOff(pragmaRange, warningNumFromPragma)) = pragma
-
-                        warningNum = warningNumFromPragma
+                    |> List.exists (fun (ScopedPragma.WarningOff(pragmaRange, pragmaWarningNum)) ->
+                        warningNum = pragmaWarningNum
                         && (not checkFile || m.FileIndex = pragmaRange.FileIndex)
-                        && posGeq m.Start pragmaRange.Start)
+                        && rangeContainsRange pragmaRange m)
                     |> not
                 | None -> true
 
