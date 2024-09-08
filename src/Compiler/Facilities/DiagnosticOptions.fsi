@@ -19,7 +19,6 @@ type WarnScopes = {
     closed: Map<int64, WarnScope list>
     openEnded: Map<int64, WarnScope>
     }
-    // with member Range: range
 
 [<RequireQualifiedAccess>]
 type FSharpDiagnosticSeverity =

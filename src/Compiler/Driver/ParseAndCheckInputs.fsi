@@ -86,7 +86,7 @@ val ProcessMetaCommandsFromInput:
 val ApplyMetaCommandsFromInputToTcConfig: TcConfig * ParsedInput * string * DependencyProvider -> TcConfig
 
 /// Process the #nowarn in an input and integrate them into the TcConfig
-val ApplyNoWarnsToTcConfig: TcConfig * ParsedInput * string -> TcConfig
+// val ApplyNoWarnsToTcConfig: TcConfig * ParsedInput * string -> TcConfig
 
 /// Parse one input stream
 val ParseOneInputStream:

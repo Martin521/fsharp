@@ -2840,13 +2840,10 @@ type internal FsiDynamicCompiler
         ) =
         WithImplicitHome (tcConfigB, directoryName sourceFile) (fun () ->
             ProcessMetaCommandsFromInput
-                ((fun st (m, nm) ->
-                    tcConfigB.TurnWarningOff(m, nm)
-                    st),
+                ((fun st _ -> st),
                  (fun st (m, path, directive) ->
                      let st, _ =
                          fsiDynamicCompiler.PartiallyProcessReferenceOrPackageIncludePathDirective(ctok, st, directive, path, false, m)
-
                      st),
                  (fun _ _ -> ()))
                 (tcConfigB, input, !! Path.GetDirectoryName(sourceFile), istate))
@@ -2886,9 +2883,9 @@ type internal FsiDynamicCompiler
 
             fsiConsoleOutput.uprintfn "]"
 
-            for (warnNum, ranges) in closure.NoWarns do
-                for m in ranges do
-                    tcConfigB.TurnWarningOff(m, warnNum)
+            // for (warnNum, ranges) in closure.NoWarns do
+            //     for m in ranges do
+            //         tcConfigB.TurnWarningOff(m, warnNum)
 
             // Play errors and warnings from resolution
             closure.ResolutionDiagnostics |> List.iter diagnosticSink
@@ -3850,9 +3847,9 @@ type FsiInteractionProcessor
 
             istate, Completed None
 
-        | ParsedHashDirective("nowarn", nowarnArguments, m) ->
-            let numbers = (parsedHashDirectiveArguments nowarnArguments tcConfigB.langVersion)
-            List.iter (fun (d: string) -> tcConfigB.TurnWarningOff(m, d)) numbers
+        | ParsedHashDirective("nowarn", _, _) ->
+            // let numbers = (parsedHashDirectiveArguments nowarnArguments tcConfigB.langVersion)
+            // List.iter (fun (d: string) -> tcConfigB.TurnWarningOff(m, d)) numbers
             istate, Completed None
 
         | ParsedHashDirective("terms", [], _) ->

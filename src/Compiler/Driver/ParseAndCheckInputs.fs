@@ -986,14 +986,14 @@ let ProcessMetaCommandsFromInput
         let state = List.fold ProcessMetaCommandsFromModuleImpl state implFile.Contents
         state
 
-let ApplyNoWarnsToTcConfig (tcConfig: TcConfig, inp: ParsedInput, pathOfMetaCommandSource) =
-    // Clone
-    let tcConfigB = tcConfig.CloneToBuilder()
-    let addNoWarn = fun () (m, s) -> tcConfigB.TurnWarningOff(m, s)
-    let addReference = fun () (_m, _s, _) -> ()
-    let addLoadedSource = fun () (_m, _s) -> ()
-    ProcessMetaCommandsFromInput (addNoWarn, addReference, addLoadedSource) (tcConfigB, inp, pathOfMetaCommandSource, ())
-    TcConfig.Create(tcConfigB, validate = false)
+// let ApplyNoWarnsToTcConfig (tcConfig: TcConfig, inp: ParsedInput, pathOfMetaCommandSource) =
+//     // Clone
+//     let tcConfigB = tcConfig.CloneToBuilder()
+//     let addNoWarn = fun () (m, s) -> tcConfigB.TurnWarningOff(m, s)
+//     let addReference = fun () (_m, _s, _) -> ()
+//     let addLoadedSource = fun () (_m, _s) -> ()
+//     ProcessMetaCommandsFromInput (addNoWarn, addReference, addLoadedSource) (tcConfigB, inp, pathOfMetaCommandSource, ())
+//     TcConfig.Create(tcConfigB, validate = false)
 
 let ApplyMetaCommandsFromInputToTcConfig (tcConfig: TcConfig, inp: ParsedInput, pathOfMetaCommandSource, dependencyProvider) =
     // Clone

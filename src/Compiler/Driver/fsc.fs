@@ -234,10 +234,10 @@ let AdjustForScriptCompile (tcConfigB: TcConfigBuilder, commandLineSourceFiles, 
             references
             |> List.iter (fun r -> tcConfigB.AddReferencedAssemblyByPath(r.originalReference.Range, r.resolvedPath))
 
-            // Also record the other declarations from the script.
-            closure.NoWarns
-            |> List.collect (fun (n, ms) -> ms |> List.map (fun m -> m, n))
-            |> List.iter (fun (x, m) -> tcConfigB.TurnWarningOff(x, m))
+            // With WarnScopes, this is no longer needed
+            // closure.NoWarns
+            // |> List.collect (fun (n, ms) -> ms |> List.map (fun m -> m, n))
+            // |> List.iter (fun (x, m) -> tcConfigB.TurnWarningOff(x, m))
 
             closure.SourceFiles |> List.map fst |> List.iter AddIfNotPresent
             closure.AllRootFileDiagnostics |> List.iter diagnosticSink
