@@ -6,6 +6,21 @@
 
 namespace FSharp.Compiler.Diagnostics
 
+open FSharp.Compiler.Text
+
+/// The range between #nowarn and #warnon or #warnon and #nowarn, respectively, for a warning number.
+type WarnScope =
+    | Off of range
+    | On of range
+
+/// The collected WarnScope objects
+[<RequireQualifiedAccess>]
+type WarnScopes = {
+    closed: Map<int64, WarnScope list>
+    openEnded: Map<int64, WarnScope>
+    }
+    // with member Range: range
+
 [<RequireQualifiedAccess>]
 type FSharpDiagnosticSeverity =
     | Hidden
@@ -19,7 +34,8 @@ type FSharpDiagnosticOptions =
       WarnOff: int list
       WarnOn: int list
       WarnAsError: int list
-      WarnAsWarn: int list }
+      WarnAsWarn: int list
+      mutable WarnScopes: WarnScopes }
 
     static member Default: FSharpDiagnosticOptions
 

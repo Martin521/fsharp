@@ -5,6 +5,19 @@
 // F# compiler.
 namespace FSharp.Compiler.Diagnostics
 
+open FSharp.Compiler.Text
+
+[<RequireQualifiedAccess>]
+type WarnScope =
+    | Off of range
+    | On of range
+
+[<RequireQualifiedAccess>]
+type WarnScopes = {
+    closed: Map<int64, WarnScope list>
+    openEnded: Map<int64, WarnScope>
+    }
+
 [<RequireQualifiedAccess>]
 type FSharpDiagnosticSeverity =
     | Hidden
@@ -20,6 +33,7 @@ type FSharpDiagnosticOptions =
         WarnOn: int list
         WarnAsError: int list
         WarnAsWarn: int list
+        mutable WarnScopes: WarnScopes
     }
 
     static member Default =
@@ -30,6 +44,7 @@ type FSharpDiagnosticOptions =
             WarnOn = []
             WarnAsError = []
             WarnAsWarn = []
+            WarnScopes = {WarnScopes.closed = Map.empty; WarnScopes.openEnded = Map.empty}
         }
 
     member x.CheckXmlDocs =

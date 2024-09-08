@@ -75,8 +75,9 @@ type DiagnosticsLoggerUpToMaxErrors(tcConfigB: TcConfigBuilder, exiter: Exiter, 
 
     override x.DiagnosticSink(diagnostic, severity) =
         let tcConfig = TcConfig.Create(tcConfigB, validate = false)
-
-        if diagnostic.ReportAsError(tcConfig.diagnosticsOptions, severity) then
+        
+        match diagnostic.AdaptedSeverity(tcConfigB.diagnosticsOptions, severity) with
+        | FSharpDiagnosticSeverity.Error ->
             if errors >= tcConfig.maxErrors then
                 x.HandleTooManyErrors(FSComp.SR.fscTooManyErrors ())
                 exiter.Exit 1
@@ -91,12 +92,9 @@ type DiagnosticsLoggerUpToMaxErrors(tcConfigB: TcConfigBuilder, exiter: Exiter, 
             | :? KeyNotFoundException, None ->
                 Debug.Assert(false, sprintf "Lookup exception in compiler: %s" (diagnostic.Exception.ToString()))
             | _ -> ()
-
-        elif diagnostic.ReportAsWarning(tcConfig.diagnosticsOptions, severity) then
-            x.HandleIssue(tcConfig, diagnostic, FSharpDiagnosticSeverity.Warning)
-
-        elif diagnostic.ReportAsInfo(tcConfig.diagnosticsOptions, severity) then
-            x.HandleIssue(tcConfig, diagnostic, severity)
+            
+        | FSharpDiagnosticSeverity.Hidden -> ()
+        | s -> x.HandleIssue(tcConfig, diagnostic, s)
 
 /// Create an error logger that counts and prints errors
 let ConsoleDiagnosticsLogger (tcConfigB: TcConfigBuilder, exiter: Exiter) =
@@ -625,7 +623,7 @@ let main1
     // Parse sourceFiles
     ReportTime tcConfig "Parse inputs"
     use unwindParsePhase = UseBuildPhase BuildPhase.Parse
-
+    
     let inputs =
         ParseInputFiles(tcConfig, lexResourceManager, sourceFiles, diagnosticsLogger, false)
 
@@ -739,13 +737,7 @@ let main2
     let oldLogger = diagnosticsLogger
 
     let diagnosticsLogger =
-        let scopedPragmas =
-            [
-                for CheckedImplFile(pragmas = pragmas) in typedImplFiles do
-                    yield! pragmas
-            ]
-
-        GetDiagnosticsLoggerFilteringByScopedPragmas(true, scopedPragmas, tcConfig.diagnosticsOptions, oldLogger)
+        GetDiagnosticsLoggerFilteringByScopedPragmas(tcConfig.diagnosticsOptions, oldLogger)
 
     SetThreadDiagnosticsLoggerNoUnwind diagnosticsLogger
 

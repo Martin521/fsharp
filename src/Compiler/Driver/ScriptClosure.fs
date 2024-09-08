@@ -515,7 +515,7 @@ module ScriptPreprocessClosure =
         match lastParsedInput with
         | Some(ParsedInput.ImplFile lastParsedImplFile) ->
 
-            let (ParsedImplFileInput(name, isScript, qualNameOfFile, scopedPragmas, hashDirectives, implFileFlags, _, trivia, identifiers)) =
+            let (ParsedImplFileInput(name, isScript, qualNameOfFile, hashDirectives, implFileFlags, _, trivia, identifiers)) =
                 lastParsedImplFile
 
             let isLastCompiland = (true, tcConfig.target.IsExe)
@@ -525,7 +525,6 @@ module ScriptPreprocessClosure =
                     name,
                     isScript,
                     qualNameOfFile,
-                    scopedPragmas,
                     hashDirectives,
                     implFileFlags,
                     isLastCompiland,

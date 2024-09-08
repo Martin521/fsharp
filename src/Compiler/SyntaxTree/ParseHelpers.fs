@@ -16,6 +16,8 @@ open FSharp.Compiler.Xml
 open Internal.Utilities.Library
 open Internal.Utilities.Text.Lexing
 open Internal.Utilities.Text.Parsing
+open System.Text.RegularExpressions
+
 
 //------------------------------------------------------------------------
 // Parsing: Error recovery exception for fsyacc
@@ -231,6 +233,10 @@ module LexbufIfdefStore =
     let GetTrivia (lexbuf: Lexbuf) : ConditionalDirectiveTrivia list =
         let store = getStore lexbuf
         Seq.toList store
+
+//------------------------------------------------------------------------
+// Parsing/lexing: capture the ranges of code comments as syntax trivia
+//------------------------------------------------------------------------
 
 /// Used to capture the ranges of code comments as syntax trivia
 module LexbufCommentStore =
