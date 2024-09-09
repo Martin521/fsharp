@@ -11,12 +11,10 @@ open FSharp.Compiler.Text
 type WarnScope =
     | Off of range
     | On of range
+    | OpenOff of range
+    | OpenOn of range
 
-[<RequireQualifiedAccess>]
-type WarnScopes = {
-    closed: Map<int64, WarnScope list>
-    openEnded: Map<int64, WarnScope>
-    }
+type WarnScopeMap = WarnScopeMap of Map<int64, WarnScope list>
 
 [<RequireQualifiedAccess>]
 type FSharpDiagnosticSeverity =
@@ -33,7 +31,7 @@ type FSharpDiagnosticOptions =
         WarnOn: int list
         WarnAsError: int list
         WarnAsWarn: int list
-        mutable WarnScopes: WarnScopes
+        mutable WarnScopes: WarnScopeMap
     }
 
     static member Default =
@@ -44,7 +42,7 @@ type FSharpDiagnosticOptions =
             WarnOn = []
             WarnAsError = []
             WarnAsWarn = []
-            WarnScopes = {WarnScopes.closed = Map.empty; WarnScopes.openEnded = Map.empty}
+            WarnScopes = WarnScopeMap Map.empty
         }
 
     member x.CheckXmlDocs =

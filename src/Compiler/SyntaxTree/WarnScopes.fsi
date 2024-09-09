@@ -9,13 +9,13 @@ module internal WarnScopes =
 
     val ParseAndSaveWarnDirectiveLine: lexbuf: UnicodeLexing.Lexbuf -> unit
 
-    val FromLexbuf: lexbuf: UnicodeLexing.Lexbuf -> WarnScopes
+    val FromLexbuf: lexbuf: UnicodeLexing.Lexbuf -> WarnScopeMap
 
-    val MergeInto: FSharpDiagnosticOptions -> WarnScopes -> unit
+    val MergeInto: FSharpDiagnosticOptions -> WarnScopeMap -> unit
     
-    val Print: string -> WarnScopes -> unit
+    val Print: string -> WarnScopeMap -> unit
 
-    val IsWarnon: WarnScopes -> warningNumber: int -> mo: range option -> bool
+    val IsWarnon: WarnScopeMap -> warningNumber: int -> mo: range option -> bool
 
-    val IsNowarn: WarnScopes -> warningNumber: int -> mo: range option -> bool -> bool
+    val IsNowarn: WarnScopeMap -> warningNumber: int -> mo: range option -> bool -> bool
 

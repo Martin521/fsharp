@@ -44,54 +44,31 @@ module internal WarnScopes =
         let dIdent = mGroups[1].Value
         [for c in mGroups[2].Captures -> c] |> List.choose (getWarnDirective dIdent m)
 
-    let private tryFindOpen idx (warnScopes: WarnScopes) =
-        warnScopes.openEnded.TryFind idx
-    
-    let private getClosed idx (warnScopes: WarnScopes) =
-        warnScopes.closed.TryFind idx |> Option.defaultValue []
-
-    let private addClosed idx warnScopeList (warnScopes: WarnScopes) =
-        let newScopesForIdx =
-            match warnScopes.closed.TryFind idx with
-            | Some wss -> warnScopeList @ wss
-            | None -> warnScopeList
-        {warnScopes with closed = warnScopes.closed.Add(idx, newScopesForIdx)}
-
-    let private addOpen idx warnScope (warnScopes: WarnScopes) =
-        if warnScopes.openEnded.ContainsKey idx then failwith "unexpected duplicate open warnScope"
-        {warnScopes with openEnded = warnScopes.openEnded.Add(idx, warnScope)}
-
-    let private removeOpen idx (warnScopes: WarnScopes) =
-        {warnScopes with openEnded = warnScopes.openEnded.Remove idx}        
+    let private getScopes idx warnScopes =
+        Map.tryFind idx warnScopes |> Option.defaultValue []
 
     let private mkScope (m1: range) (m2: range) = mkFileIndexRange m1.FileIndex m1.Start m2.End
         
-    let private processWarnDirective (warnScopes: WarnScopes) (wd: WarnDirective) =
+    let private processWarnDirective (WarnScopeMap warnScopes) (wd: WarnDirective) =
         match wd with
         | WarnDirective.Nowarn(n, m) ->
             let idx = index(m.FileIndex, n)
-            match tryFindOpen idx warnScopes with
-            | Some (WarnScope.Off _) -> warnScopes
-            | Some (WarnScope.On m') ->
-                warnScopes
-                |> addClosed idx [WarnScope.On(mkScope m' m)]
-                |> removeOpen idx
-            | None -> warnScopes |> addOpen idx (WarnScope.Off(mkScope m m))
+            match getScopes idx warnScopes with
+            | WarnScope.OpenOn m' :: t -> warnScopes.Add(idx, WarnScope.On(mkScope m' m) :: t)
+            | WarnScope.OpenOff _ :: _-> warnScopes
+            | scopes -> warnScopes.Add(idx, WarnScope.OpenOff(mkScope m m) :: scopes)
         | WarnDirective.Warnon(n, m) ->
             let idx = index(m.FileIndex, n)
-            match tryFindOpen idx warnScopes with
-            | Some (WarnScope.On _) -> warnScopes
-            | Some (WarnScope.Off m') ->
-                warnScopes
-                |> addClosed idx [WarnScope.Off(mkScope m' m)]
-                |> removeOpen idx
-            | None -> warnScopes |> addOpen idx (WarnScope.On(mkScope m m))
+            match getScopes idx warnScopes with
+            | WarnScope.OpenOff m' :: t -> warnScopes.Add(idx, WarnScope.Off(mkScope m' m) :: t)
+            | WarnScope.OpenOn _ :: _-> warnScopes
+            | scopes -> warnScopes.Add(idx, WarnScope.OpenOn(mkScope m m) :: scopes)
+        |> WarnScopeMap
 
-    let FromLexbuf (lexbuf: Lexbuf) : WarnScopes =
+    let FromLexbuf (lexbuf: Lexbuf) : WarnScopeMap =
         if not <| lexbuf.BufferLocalStore.ContainsKey warnScopeKey then
-            let empty = {WarnScopes.closed = Map.empty; WarnScopes.openEnded = Map.empty}
-            lexbuf.BufferLocalStore.Add(warnScopeKey, empty)
-        lexbuf.BufferLocalStore[warnScopeKey] :?> WarnScopes
+            lexbuf.BufferLocalStore.Add(warnScopeKey, WarnScopeMap Map.empty)
+        lexbuf.BufferLocalStore[warnScopeKey] :?> WarnScopeMap
     
     /// true if m1 contains m2
     let private contains (m2: range) (m1: range) =
@@ -102,61 +79,48 @@ module internal WarnScopes =
         let m = mkFileIndexRange lexbuf.StartPos.FileIndex (convert lexbuf.StartPos) (convert lexbuf.EndPos)
         let text = Lexbuf.LexemeString lexbuf
         let directives = getDirectives text m
-        if not <| lexbuf.BufferLocalStore.ContainsKey warnScopeKey then
-            let empty = {WarnScopes.closed = Map.empty; WarnScopes.openEnded = Map.empty}
-            lexbuf.BufferLocalStore.Add(warnScopeKey, empty)
         let warnScopes = (FromLexbuf lexbuf, directives) ||> List.fold processWarnDirective
         lexbuf.BufferLocalStore[warnScopeKey] <- warnScopes
     
-    let MergeInto (diagnosticOptions: FSharpDiagnosticOptions) (warnScopes: WarnScopes) =
-        let withCombinedClosed =
-            Map.fold (fun wss idx ws -> addClosed idx ws wss) diagnosticOptions.WarnScopes warnScopes.closed
-        let withCombinedClosedAndOpen =
-            Map.fold (fun wss idx ws -> addOpen idx ws wss) withCombinedClosed warnScopes.openEnded
-        diagnosticOptions.WarnScopes <- withCombinedClosedAndOpen
+    let MergeInto (diagnosticOptions: FSharpDiagnosticOptions) (WarnScopeMap warnScopes) =
+        let (WarnScopeMap current) = diagnosticOptions.WarnScopes
+        let warnScopes' = Map.fold (fun wss idx ws -> Map.add idx ws wss) current warnScopes
+        diagnosticOptions.WarnScopes <- WarnScopeMap warnScopes'
+        
     
-    let Print header (warnScopes: WarnScopes) =
+    let Print header (WarnScopeMap warnScopes) =
         let fIdx (idx: int64) = int (idx >>> 32)
         let nIdx (idx: int64) = int(idx - index(fIdx idx, 0))
         let fileName idx = idx |> fIdx |> FileIndex.fileOfFileIndex |> System.IO.Path.GetFileName
         let mutable lines = [header]
         let p s = lines <- s::lines
-        p "warn scopes (closed):"
-        warnScopes.closed |> Map.iter (fun idx wss ->
+        warnScopes |> Map.iter (fun idx wss ->
             p $"  {fileName idx} {nIdx idx}"
             wss |> List.iter (fun ws -> p $"      {ws}")
             )
-        p "warn scopes (open):"
-        warnScopes.openEnded |> Map.iter (fun idx ws -> p $"  {fileName idx} {nIdx idx} {ws}")
         System.IO.File.AppendAllLines("warnscopes.txt", List.rev lines)
         
-    let IsWarnon (warnScopes: WarnScopes) warningNumber (mo: range option) =
+    let IsWarnon (WarnScopeMap warnScopes) warningNumber (mo: range option) =
         match mo with
         | None -> false
         | Some m ->
-            let idx = index(m.FileIndex, warningNumber)
-            match tryFindOpen idx warnScopes with
-            | Some (WarnScope.On wm) when m.StartLine > wm.StartLine -> true
-            | _ ->
-                let closed = getClosed idx warnScopes
-                let isEnclosingWarnonScope scope =
-                    match scope with
-                    | WarnScope.On wm when contains m wm -> true
-                    | _ -> false
-                List.exists isEnclosingWarnonScope closed
+            let scopes = getScopes (index(m.FileIndex, warningNumber)) warnScopes
+            let isEnclosingWarnonScope scope =
+                match scope with
+                | WarnScope.On wm when contains m wm -> true
+                | WarnScope.OpenOn wm when m.StartLine > wm.StartLine -> true
+                | _ -> false
+            List.exists isEnclosingWarnonScope scopes
 
     /// compatible = compatible with earlier (< F#9.0) inconsistent interaction between #line and #nowarn
-    let IsNowarn (warnScopes: WarnScopes) warningNumber (mo: range option) compatible =
+    let IsNowarn (WarnScopeMap warnScopes) warningNumber (mo: range option) compatible =
         match mo with
-        | None -> false
+        | None -> compatible
         | Some m ->
-            let idx = index(m.FileIndex, warningNumber)
-            match tryFindOpen idx warnScopes with
-            | Some (WarnScope.Off wm) when compatible || m.StartLine > wm.StartLine -> true
-            | _ ->
-                let closed = getClosed idx warnScopes
-                let isEnclosingNowarnScope scope =
-                    match scope with
-                    | WarnScope.Off wm when contains m wm -> true
-                    | _ -> false
-                List.exists isEnclosingNowarnScope closed
+            let scopes = getScopes (index(m.FileIndex, warningNumber)) warnScopes
+            let isEnclosingNowarnScope scope =
+                match scope with
+                | WarnScope.Off wm when contains m wm -> true
+                | WarnScope.OpenOff wm when compatible || m.StartLine > wm.StartLine -> true
+                | _ -> false
+            List.exists isEnclosingNowarnScope scopes
