@@ -75,7 +75,7 @@ type DiagnosticsLoggerUpToMaxErrors(tcConfigB: TcConfigBuilder, exiter: Exiter, 
 
     override x.DiagnosticSink(diagnostic, severity) =
         let tcConfig = TcConfig.Create(tcConfigB, validate = false)
-        
+
         match diagnostic.AdaptedSeverity(tcConfigB.diagnosticsOptions, severity) with
         | FSharpDiagnosticSeverity.Error ->
             if errors >= tcConfig.maxErrors then
@@ -92,7 +92,7 @@ type DiagnosticsLoggerUpToMaxErrors(tcConfigB: TcConfigBuilder, exiter: Exiter, 
             | :? KeyNotFoundException, None ->
                 Debug.Assert(false, sprintf "Lookup exception in compiler: %s" (diagnostic.Exception.ToString()))
             | _ -> ()
-            
+
         | FSharpDiagnosticSeverity.Hidden -> ()
         | s -> x.HandleIssue(tcConfig, diagnostic, s)
 
@@ -234,11 +234,6 @@ let AdjustForScriptCompile (tcConfigB: TcConfigBuilder, commandLineSourceFiles, 
             references
             |> List.iter (fun r -> tcConfigB.AddReferencedAssemblyByPath(r.originalReference.Range, r.resolvedPath))
 
-            // With WarnScopes, this is no longer needed
-            // closure.NoWarns
-            // |> List.collect (fun (n, ms) -> ms |> List.map (fun m -> m, n))
-            // |> List.iter (fun (x, m) -> tcConfigB.TurnWarningOff(x, m))
-
             closure.SourceFiles |> List.map fst |> List.iter AddIfNotPresent
             closure.AllRootFileDiagnostics |> List.iter diagnosticSink
 
@@ -287,6 +282,10 @@ let ProcessCommandLineFlags (tcConfigB: TcConfigBuilder, lcidFromCodePage, argv)
 
     // This is where flags are interpreted by the command line fsc.exe.
     ParseCompilerOptions(collect, GetCoreFscCompilerOptions tcConfigB, List.tail (PostProcessCompilerArgs abbrevArgs argv))
+
+    //TODO
+    // tcConfigB.diagnosticsOptions.Fsharp8CompatibleNowarn <-
+    //         not <| tcConfigB.langVersion.SupportsFeature LanguageFeature.ConsistentNowarnLineDirectiveInteraction
 
     let inputFiles = List.rev inputFilesRef
 

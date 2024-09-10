@@ -262,9 +262,7 @@ let PostParseModuleImpls
             CodeComments = codeComments
         }
 
-    ParsedInput.ImplFile(
-        ParsedImplFileInput(fileName, isScript, qualName, hashDirectives, impls, isLastCompiland, trivia, identifiers)
-    )
+    ParsedInput.ImplFile(ParsedImplFileInput(fileName, isScript, qualName, hashDirectives, impls, isLastCompiland, trivia, identifiers))
 
 let PostParseModuleSpecs
     (
@@ -441,7 +439,7 @@ let ParseInput
         // Call the appropriate parser - for signature files or implementation files
         if FSharpImplFileSuffixes |> List.exists (FileSystemUtils.checkSuffix fileName) then
             let impl = Parser.implementationFile lexer lexbuf
-            
+
             lexbuf |> WarnScopes.FromLexbuf |> WarnScopes.MergeInto diagnosticOptions
 
             let tripleSlashComments =
@@ -450,7 +448,7 @@ let ParseInput
             PostParseModuleImpls(defaultNamespace, fileName, isLastCompiland, impl, lexbuf, tripleSlashComments, Set identStore)
         elif FSharpSigFileSuffixes |> List.exists (FileSystemUtils.checkSuffix fileName) then
             let intfs = Parser.signatureFile lexer lexbuf
-            
+
             lexbuf |> WarnScopes.FromLexbuf |> WarnScopes.MergeInto diagnosticOptions
 
             let tripleSlashComments =
@@ -985,15 +983,6 @@ let ProcessMetaCommandsFromInput
         let state = List.fold ProcessMetaCommand state0 implFile.HashDirectives
         let state = List.fold ProcessMetaCommandsFromModuleImpl state implFile.Contents
         state
-
-// let ApplyNoWarnsToTcConfig (tcConfig: TcConfig, inp: ParsedInput, pathOfMetaCommandSource) =
-//     // Clone
-//     let tcConfigB = tcConfig.CloneToBuilder()
-//     let addNoWarn = fun () (m, s) -> tcConfigB.TurnWarningOff(m, s)
-//     let addReference = fun () (_m, _s, _) -> ()
-//     let addLoadedSource = fun () (_m, _s) -> ()
-//     ProcessMetaCommandsFromInput (addNoWarn, addReference, addLoadedSource) (tcConfigB, inp, pathOfMetaCommandSource, ())
-//     TcConfig.Create(tcConfigB, validate = false)
 
 let ApplyMetaCommandsFromInputToTcConfig (tcConfig: TcConfig, inp: ParsedInput, pathOfMetaCommandSource, dependencyProvider) =
     // Clone

@@ -1084,7 +1084,8 @@ rule token (args: LexArgs) (skip: bool) = parse
    {
      WarnScopes.ParseAndSaveWarnDirectiveLine lexbuf
      newline lexbuf
-     token args skip lexbuf
+     let tok = WHITESPACE (LexCont.Token (args.ifdefStack, args.stringNest))
+     if not skip then tok else token args skip lexbuf
    }
 
  | surrogateChar surrogateChar

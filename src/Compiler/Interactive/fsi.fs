@@ -897,7 +897,7 @@ type internal DiagnosticsLoggerThatStopsOnFirstError
 
     override _.DiagnosticSink(diagnostic, severity) =
         let tcConfig = TcConfig.Create(tcConfigB, validate = false)
-        
+
         match diagnostic.AdaptedSeverity(tcConfig.diagnosticsOptions, severity) with
         | FSharpDiagnosticSeverity.Error ->
             fsiStdinSyphon.PrintDiagnostic(tcConfig, diagnostic)
@@ -2882,10 +2882,6 @@ type internal FsiDynamicCompiler
                     fsiConsoleOutput.uprintnf " %s %s" (FSIstrings.SR.fsiLoadingFilesPrefixText ()) input.FileName)
 
             fsiConsoleOutput.uprintfn "]"
-
-            // for (warnNum, ranges) in closure.NoWarns do
-            //     for m in ranges do
-            //         tcConfigB.TurnWarningOff(m, warnNum)
 
             // Play errors and warnings from resolution
             closure.ResolutionDiagnostics |> List.iter diagnosticSink

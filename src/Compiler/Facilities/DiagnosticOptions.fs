@@ -31,7 +31,8 @@ type FSharpDiagnosticOptions =
         WarnOn: int list
         WarnAsError: int list
         WarnAsWarn: int list
-        mutable WarnScopes: WarnScopeMap
+        mutable Fsharp8CompatibleNowarn: bool // set after setting compiler options
+        mutable WarnScopes: WarnScopeMap // set after lexing
     }
 
     static member Default =
@@ -42,6 +43,7 @@ type FSharpDiagnosticOptions =
             WarnOn = []
             WarnAsError = []
             WarnAsWarn = []
+            Fsharp8CompatibleNowarn = false
             WarnScopes = WarnScopeMap Map.empty
         }
 
