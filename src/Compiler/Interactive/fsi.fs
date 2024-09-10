@@ -2844,6 +2844,7 @@ type internal FsiDynamicCompiler
                  (fun st (m, path, directive) ->
                      let st, _ =
                          fsiDynamicCompiler.PartiallyProcessReferenceOrPackageIncludePathDirective(ctok, st, directive, path, false, m)
+
                      st),
                  (fun _ _ -> ()))
                 (tcConfigB, input, !! Path.GetDirectoryName(sourceFile), istate))

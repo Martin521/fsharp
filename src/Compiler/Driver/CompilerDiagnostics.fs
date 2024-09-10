@@ -2290,11 +2290,8 @@ type PhasedDiagnostic with
 type DiagnosticsLoggerFilteringByScopedPragmas(diagnosticOptions: FSharpDiagnosticOptions, diagnosticsLogger: DiagnosticsLogger) =
     inherit DiagnosticsLogger("DiagnosticsLoggerFilteringByScopedPragmas")
 
-    let needCompatibilityWithEarlierInconsistentInteraction =
-        not (langVersion.SupportsFeature LanguageFeature.ConsistentNowarnLineDirectiveInteraction)
-
     let mutable realErrorPresent = false
-    
+
     override _.DiagnosticSink(diagnostic: PhasedDiagnostic, severity) =
 
         if severity = FSharpDiagnosticSeverity.Error then

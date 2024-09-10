@@ -7,6 +7,9 @@ open FSharp.Test.Compiler
 module Nowarn =
 
     let warn20Text = "The result of this expression has type 'string' and is implicitly ignored. Consider using 'ignore' to discard this value explicitly, e.g. 'expr |> ignore', or 'let' to bind the result to a name, e.g. 'let result = expr'."
+    let private warning25Text = "Incomplete pattern matches on this expression. For example, the value 'Some (_)' may indicate a case not covered by the pattern(s)."
+    let private warning44Text = "This construct is deprecated"
+    
 
     let checkFileBugSource = """
 module A
@@ -49,17 +52,8 @@ module A
         |> withLangVersion90
         |> compile
         |> shouldSucceed
-// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
-namespace CompilerDirectives
 
-open Xunit
-open FSharp.Test.Compiler
 
-module Nowarn =
-
-    let private warning25Text = "Incomplete pattern matches on this expression. For example, the value 'Some (_)' may indicate a case not covered by the pattern(s)."
-    let private warning44Text = "This construct is deprecated"
-    
     let private sourceForWarningIsSuppressed = """
 module A
 match None with None -> ()

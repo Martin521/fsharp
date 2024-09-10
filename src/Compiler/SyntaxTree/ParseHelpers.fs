@@ -18,7 +18,6 @@ open Internal.Utilities.Text.Lexing
 open Internal.Utilities.Text.Parsing
 open System.Text.RegularExpressions
 
-
 //------------------------------------------------------------------------
 // Parsing: Error recovery exception for fsyacc
 //------------------------------------------------------------------------

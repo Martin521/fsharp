@@ -283,9 +283,8 @@ let ProcessCommandLineFlags (tcConfigB: TcConfigBuilder, lcidFromCodePage, argv)
     // This is where flags are interpreted by the command line fsc.exe.
     ParseCompilerOptions(collect, GetCoreFscCompilerOptions tcConfigB, List.tail (PostProcessCompilerArgs abbrevArgs argv))
 
-    //TODO
-    // tcConfigB.diagnosticsOptions.Fsharp8CompatibleNowarn <-
-    //         not <| tcConfigB.langVersion.SupportsFeature LanguageFeature.ConsistentNowarnLineDirectiveInteraction
+    tcConfigB.diagnosticsOptions.Fsharp8CompatibleNowarn <-
+            not <| tcConfigB.langVersion.SupportsFeature LanguageFeature.ConsistentNowarnLineDirectiveInteraction
 
     let inputFiles = List.rev inputFilesRef
 
@@ -622,7 +621,7 @@ let main1
     // Parse sourceFiles
     ReportTime tcConfig "Parse inputs"
     use unwindParsePhase = UseBuildPhase BuildPhase.Parse
-    
+
     let inputs =
         ParseInputFiles(tcConfig, lexResourceManager, sourceFiles, diagnosticsLogger, false)
 
