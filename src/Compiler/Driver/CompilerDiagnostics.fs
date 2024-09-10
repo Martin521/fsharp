@@ -24,6 +24,7 @@ open FSharp.Compiler.ConstraintSolver
 open FSharp.Compiler.DiagnosticMessage
 open FSharp.Compiler.Diagnostics
 open FSharp.Compiler.DiagnosticsLogger
+open FSharp.Compiler.Features
 open FSharp.Compiler.Infos
 open FSharp.Compiler.IO
 open FSharp.Compiler.Lexhelp
@@ -2288,6 +2289,9 @@ type PhasedDiagnostic with
 /// Build an DiagnosticsLogger that delegates to another DiagnosticsLogger but filters warnings (still needed??)
 type DiagnosticsLoggerFilteringByScopedPragmas(diagnosticOptions: FSharpDiagnosticOptions, diagnosticsLogger: DiagnosticsLogger) =
     inherit DiagnosticsLogger("DiagnosticsLoggerFilteringByScopedPragmas")
+
+    let needCompatibilityWithEarlierInconsistentInteraction =
+        not (langVersion.SupportsFeature LanguageFeature.ConsistentNowarnLineDirectiveInteraction)
 
     let mutable realErrorPresent = false
     
