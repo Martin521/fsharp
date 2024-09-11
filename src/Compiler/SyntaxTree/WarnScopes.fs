@@ -99,9 +99,11 @@ module internal WarnScopes =
         lexbuf.BufferLocalStore[warnScopeKey] <- warnScopes
 
     let MergeInto (diagnosticOptions: FSharpDiagnosticOptions) (WarnScopeMap warnScopes) =
-        let (WarnScopeMap current) = diagnosticOptions.WarnScopes
-        let warnScopes' = Map.fold (fun wss idx ws -> Map.add idx ws wss) current warnScopes
-        diagnosticOptions.WarnScopes <- WarnScopeMap warnScopes'
+        lock diagnosticOptions (fun () ->
+            let (WarnScopeMap current) = diagnosticOptions.WarnScopes
+            let warnScopes' = Map.fold (fun wss idx ws -> Map.add idx ws wss) current warnScopes
+            diagnosticOptions.WarnScopes <- WarnScopeMap warnScopes'
+            )
 
     /// true if m1 contains m2
     let private contains (m2: range) (m1: range) =
