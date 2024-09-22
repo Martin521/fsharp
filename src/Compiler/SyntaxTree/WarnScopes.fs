@@ -144,8 +144,8 @@ module internal WarnScopes =
             let lineMap' = Map.fold (fun lms idx oidx -> Map.add idx oidx lms) clm lineMap
             diagnosticOptions.LineMap <- LineMap lineMap')
 
-    let ClearLexbufStore (lexbuf: Lexbuf) =
         lexbuf.BufferLocalStore.Remove warnScopeKey |> ignore
+        lexbuf.BufferLocalStore.Remove lineMapKey |> ignore
 
     // *************************************
     // Apply the warn scopes after lexing
