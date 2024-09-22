@@ -1739,9 +1739,6 @@ type ParsedImplFile = ParsedImplFile of hashDirectives: ParsedHashDirective list
 [<NoEquality; NoComparison>]
 type ParsedSigFile = ParsedSigFile of hashDirectives: ParsedHashDirective list * fragments: ParsedSigFileFragment list
 
-[<RequireQualifiedAccess>]
-type ScopedPragma = WarningOff of range: range * warningNumber: int
-
 [<NoEquality; NoComparison>]
 type QualifiedNameOfFile =
     | QualifiedNameOfFile of Ident
