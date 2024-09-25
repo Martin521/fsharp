@@ -69,7 +69,7 @@ module internal WarnScopes =
         | false, _ -> None
 
     let private regex =
-        Regex(" *#(nowarn|warnon)(?: +([^ \r\n/;]+))*(?: *(?:;;|\\/\\/).*)?\r?\n", RegexOptions.Compiled ||| RegexOptions.CultureInvariant)
+        Regex(" *#(nowarn|warnon)(?: +([^ \r\n/;]+))*(?: *(?:;;|\\/\\/).*)?", RegexOptions.Compiled ||| RegexOptions.CultureInvariant)
 
     let private getDirectives text m =
         let mkDirective (directiveId: string) (m: range) (c: Capture) =
