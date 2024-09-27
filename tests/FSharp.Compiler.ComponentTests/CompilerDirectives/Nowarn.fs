@@ -102,7 +102,7 @@ module A
     let acceptDoubleSemicolonAfterDirective () =
 
         FSharp doubleSemiSource
-        |> withLangVersion90
+        |> withLangVersionPreview
         |> compile
         |> withDiagnostics [
             Warning 20, Line 6, Col 1, Line 6, Col 2, warning20Text
