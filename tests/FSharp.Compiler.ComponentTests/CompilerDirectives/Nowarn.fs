@@ -131,7 +131,8 @@ match None with None -> ()
         ]
 
     let private sigSourceForWarningIsSuppressedInSigFile = """
-module A
+#nowarn "44"
+namespace A
 open System
 [<Obsolete>]
 type T = class end
@@ -145,7 +146,7 @@ type T5 = T
     """
     
     let private sourceForWarningIsSuppressedInSigFile = """
-module A
+namespace A
 #nowarn "44"
 open System
 [<Obsolete>]
