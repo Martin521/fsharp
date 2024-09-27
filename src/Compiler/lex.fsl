@@ -1082,14 +1082,12 @@ rule token (args: LexArgs) (skip: bool) = parse
      let tok = fail args lexbuf (FSComp.SR.lexHashIfMustHaveIdent()) tok
      if not skip then tok else token args skip lexbuf }
 
- | anywhite* ("#nowarn" | "#warnon") anywhite+ anystring
-   {
+   // We parse and process warn directives here during lexing, including anything that might be an argument.
+   // But we stop early enough to pass to the parser ";;" (for compatibility) and "//" (for coloring).
+ | anywhite* ("#nowarn" | "#warnon") anywhite+ [^';''/''\r''\n']+
+   { shouldStartLine args lexbuf lexbuf.LexemeRange (FSComp.SR.lexWarnDirectiveMustBeFirst()) ()
      WarnScopes.ParseAndRegisterWarnDirective lexbuf
-     let m = lexbuf.LexemeRange
-     shouldStartLine args lexbuf m (FSComp.SR.lexWarnDirectiveMustBeFirst()) ()
-     let cont = LexCont.EndLine(args.ifdefStack, args.stringNest, LexerEndlineContinuation.Token)
-     let tok = WARN_DIRECTIVE(m, lexeme lexbuf, cont)
-     if skip then endline LexerEndlineContinuation.Token args skip lexbuf else tok }
+     WARN_DIRECTIVE }
 
  | surrogateChar surrogateChar
 

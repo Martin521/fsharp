@@ -404,7 +404,7 @@ module internal TokenClassifications =
 
         | HASH_LIGHT _
         | HASH_LINE _
-        | WARN_DIRECTIVE _
+        | WARN_DIRECTIVE
         | HASH_IF _
         | HASH_ELSE _
         | HASH_ENDIF _ -> (FSharpTokenColorKind.PreprocessorKeyword, FSharpTokenCharKind.WhiteSpace, FSharpTokenTriggerClass.None)
@@ -486,7 +486,6 @@ module internal LexerStateEncoding =
         | HASH_IF(_, _, cont)
         | HASH_ELSE(_, _, cont)
         | HASH_ENDIF(_, _, cont)
-        | WARN_DIRECTIVE(_, _, cont)
         | INACTIVECODE cont
         | WHITESPACE cont
         | COMMENT cont
@@ -1500,7 +1499,7 @@ type FSharpToken =
         | HASH_IF _ -> FSharpTokenKind.HashIf
         | HASH_ELSE _ -> FSharpTokenKind.HashElse
         | HASH_ENDIF _ -> FSharpTokenKind.HashEndIf
-        | WARN_DIRECTIVE _ -> FSharpTokenKind.WarnDirective
+        | WARN_DIRECTIVE -> FSharpTokenKind.WarnDirective
         | COMMENT _ -> FSharpTokenKind.CommentTrivia
         | WHITESPACE _ -> FSharpTokenKind.WhitespaceTrivia
         | HASH_LINE _ -> FSharpTokenKind.HashLine

@@ -94,6 +94,8 @@ module A
 module A
 #nowarn "20";;
 ""
+#warnon "20"  // comment
+""
         """
 
     [<Fact>]
@@ -102,7 +104,9 @@ module A
         FSharp doubleSemiSource
         |> withLangVersion90
         |> compile
-        |> shouldSucceed
+        |> withDiagnostics [
+            Warning 20, Line 6, Col 1, Line 6, Col 2, warning20Text
+        ]
 
 
     let private sourceForWarningIsSuppressed = """
