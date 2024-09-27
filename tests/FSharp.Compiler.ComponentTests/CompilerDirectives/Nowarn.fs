@@ -105,7 +105,7 @@ module A
         |> withLangVersionPreview
         |> compile
         |> withDiagnostics [
-            Warning 20, Line 6, Col 1, Line 6, Col 2, warning20Text
+            Warning 20, Line 6, Col 1, Line 6, Col 3, warning20Text
         ]
 
 
