@@ -814,9 +814,7 @@ let ParseInputFiles (tcConfig: TcConfig, lexResourceManager, sourceFiles, diagno
         tcConfig.exiter.Exit 1
 
 let ProcessMetaCommandsFromInput
-    (nowarnF: 'state -> range * string -> 'state,
-     hashReferenceF: 'state -> range * string * Directive -> 'state,
-     loadSourceF: 'state -> range * string -> unit)
+    (hashReferenceF: 'state -> range * string * Directive -> 'state, loadSourceF: 'state -> range * string -> unit)
     (tcConfig: TcConfigBuilder, inp: ParsedInput, pathOfMetaCommandSource, state0)
     =
 
@@ -859,10 +857,6 @@ let ProcessMetaCommandsFromInput
                     | _ -> errorR (Error(FSComp.SR.buildInvalidHashIDirective (), m))
 
                 state
-
-            | ParsedHashDirective("nowarn", hashArguments, m) ->
-                let arguments = parsedHashDirectiveArguments hashArguments tcConfig.langVersion
-                List.fold (fun state d -> nowarnF state (m, d)) state arguments
 
             | ParsedHashDirective(("reference" | "r") as c, [], m) ->
                 if not canHaveScriptMetaCommands then
@@ -987,7 +981,6 @@ let ProcessMetaCommandsFromInput
 let ApplyMetaCommandsFromInputToTcConfig (tcConfig: TcConfig, inp: ParsedInput, pathOfMetaCommandSource, dependencyProvider) =
     // Clone
     let tcConfigB = tcConfig.CloneToBuilder()
-    let getWarningNumber = fun () _ -> ()
 
     let addReferenceDirective =
         fun () (m, path, directive) -> tcConfigB.AddReferenceDirective(dependencyProvider, m, path, directive)
@@ -995,7 +988,7 @@ let ApplyMetaCommandsFromInputToTcConfig (tcConfig: TcConfig, inp: ParsedInput, 
     let addLoadedSource =
         fun () (m, s) -> tcConfigB.AddLoadedSource(m, s, pathOfMetaCommandSource)
 
-    ProcessMetaCommandsFromInput (getWarningNumber, addReferenceDirective, addLoadedSource) (tcConfigB, inp, pathOfMetaCommandSource, ())
+    ProcessMetaCommandsFromInput (addReferenceDirective, addLoadedSource) (tcConfigB, inp, pathOfMetaCommandSource, ())
     TcConfig.Create(tcConfigB, validate = false)
 
 /// Build the initial type checking environment

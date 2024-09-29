@@ -2839,8 +2839,7 @@ type internal FsiDynamicCompiler
         ) =
         WithImplicitHome (tcConfigB, directoryName sourceFile) (fun () ->
             ProcessMetaCommandsFromInput
-                ((fun st _ -> st),
-                 (fun st (m, path, directive) ->
+                ((fun st (m, path, directive) ->
                      let st, _ =
                          fsiDynamicCompiler.PartiallyProcessReferenceOrPackageIncludePathDirective(ctok, st, directive, path, false, m)
 
