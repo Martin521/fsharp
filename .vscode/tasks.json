@@ -184,22 +184,6 @@
             "type": "shell",
             "problemMatcher": "$msCompile",
             "group": "build"
-        },
-        {
-            "label": "Debug my tests",
-            "type": "process",
-            "command": "dotnet",
-            "args": [
-                "test",
-                "--no-build",
-                "--framework:net9.0",
-                "--filter",
-                "CompilerDirectives.Nowarn.warningIsSuppressedBetweenNowarnAndWarnonDirectivesInASignatureFile",
-                "tests/FSharp.Compiler.ComponentTests/"
-            ],
-            "problemMatcher": "$msCompile",
-            "group": "none",
-            "options": {"env": {"VSTEST_HOST_DEBUG": "1", "VSTEST_TESTHOST_TIMEOUT": "3000"}}
         }
     ]
 }
