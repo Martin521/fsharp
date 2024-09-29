@@ -131,7 +131,6 @@ match None with None -> ()
         ]
 
     let private sigSourceForWarningIsSuppressedInSigFile = """
-#nowarn "44"
 namespace A
 open System
 [<Obsolete>]
