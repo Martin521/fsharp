@@ -108,6 +108,19 @@ module A
             Warning 20, Line 6, Col 1, Line 6, Col 3, warning20Text
         ]
 
+    let private sourceForNowarnInsideModule = """
+namespace A
+module B =
+    #nowarn "9999"
+    type C = int
+"""
+
+    [<Fact>]
+    let nowarnInModule () =
+        FSharp sourceForNowarnInsideModule
+        |> withLangVersionPreview
+        |> compile
+        |> shouldSucceed
 
     let private sourceForWarningIsSuppressed = """
 module A
