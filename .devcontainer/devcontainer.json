@@ -30,8 +30,7 @@
     "shutdownAction": "none",
     "remoteEnv": {
         "FSHARPCORE_USE_PACKAGE": "false",
-        "DOTNET_INSTALL_DIR": "/usr/share/dotnet",
-        "DOTNET_ROOT": "/usr/share/dotnet"
+        "PATH": "$PWD/.dotnet:$PATH"
     },
     "postCreateCommand": [ "bash", "-c", "eng/common/dotnet.sh && cp -r .dotnet/sdk/* /usr/share/dotnet/sdk && cp -r .dotnet/shared/Microsoft.NETCore.App/* /usr/share/dotnet/shared/Microsoft.NETCore-App" ]
 }
