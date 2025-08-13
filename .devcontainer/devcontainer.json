@@ -30,7 +30,7 @@
     "shutdownAction": "none",
     "remoteEnv": {
         "FSHARPCORE_USE_PACKAGE": "false",
-        "PATH": "$PWD/.dotnet:$PATH"
+        "PATH": "${localWorkspace${containerEnv:PATH}"
     },
     "postCreateCommand": [ "bash", "-c", "eng/common/dotnet.sh && cp -r .dotnet/sdk/* /usr/share/dotnet/sdk && cp -r .dotnet/shared/Microsoft.NETCore.App/* /usr/share/dotnet/shared/Microsoft.NETCore-App" ]
 }
