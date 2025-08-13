@@ -184,6 +184,45 @@
             "type": "shell",
             "problemMatcher": "$msCompile",
             "group": "build"
+        },
+        {
+            "label": "Debug my tests",
+            "type": "process",
+            "command": "dotnet",
+            "args": [
+                "test",
+                "--no-build",
+                "--filter",
+                "CompilerDirectives.Line",
+                "tests/FSharp.Compiler.ComponentTests/"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "none",
+            "options": {
+                "env": {
+                    "VSTEST_HOST_DEBUG": "1",
+                    "VSTEST_TESTHOST_TIMEOUT": "3000",
+                    "NowarnSingleTest": "6"
+                }
+            }
+        },
+        {
+            "label": "Debug building ComponentTests",
+            "type": "process",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "tests/FSharp.Compiler.ComponentTests/"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "none",
+            "options": {
+                "env": {
+                    "VSTEST_HOST_DEBUG": "1",
+                    "VSTEST_TESTHOST_TIMEOUT": "3000",
+                    "NowarnSingleTest": "6"
+                }
+            }
         }
     ]
 }
