@@ -26,6 +26,7 @@
             ]
         }
     },
+    "shutdownAction": "none",
     "remoteEnv": {
         "TARGET": "net10.0",
         "FSHARPCORE_USE_PACKAGE": "false",
