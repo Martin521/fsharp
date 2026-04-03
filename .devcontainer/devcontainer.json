@@ -31,5 +31,5 @@
         "FSHARPCORE_USE_PACKAGE": "false",
         "PATH": "${localWorkspaceFolder}/.dotnet:${containerEnv:PATH}"
     },
-    "postCreateCommand": [ "bash", "-c", "eng/common/dotnet.sh" ]
+    "postCreateCommand": [ "bash", "-c", "eng/common/dotnet.sh", "build", "FSharp.Compiler.Service.sln" ]
 }
