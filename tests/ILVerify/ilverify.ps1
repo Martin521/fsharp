@@ -4,11 +4,11 @@ function Normalize-IlverifyOutputLine {
     param(
         [string]$line
     )
-    # Remove F# closure suffixes: +clo@NNN-NNN, +clo@NNN, +NAME@NNN-NNN, +NAME@NNN
+    # Remove F# closure suffixes: +clo@NNN[-NNN], +NAME@NNN[-NNN]
     $line = $line -replace '(\+\w+)@\d+(-\d+)?', '$1'
     # Remove patterns like "Pipe #1 stage #1 at line 1782@1782"
     $line = $line -replace 'Pipe #\d+ stage #\d+ at line \d+@\d+', ''
-    # Remove function suffixes like NAME@NNN or NAME@NNN-NNN in method names
+    # Remove function suffixes like NAME@NNN[-NNN] in method names
     $line = $line -replace '(\w+)@\d+(-\d+)?', '$1'
     # Remove 'at line NNNN'
     $line = $line -replace 'at line \d+', ''
@@ -164,7 +164,10 @@ foreach ($project in $projects.Keys) {
                 }
             }
 
-            $baseline_file = Join-Path $repo_path "tests/ILVerify" "ilverify_${project}_${configuration}_${tfm}.bsl"
+            # Map versioned netcoreapp TFMs (net10.0, net11.0, ...) to generic name so baselines
+            # don't need updating on every TFM bump — the ILVerify output is the same across versions.
+            $baseline_tfm = if ($tfm -match '^net\d+\.0$') { "netcoreapp" } else { $tfm }
+            $baseline_file = Join-Path $repo_path "tests/ILVerify" "ilverify_${project}_${configuration}_${baseline_tfm}.bsl"
 
             $baseline_actual_file = [System.IO.Path]::ChangeExtension($baseline_file, 'bsl.actual')
 
